@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+// config for librato
+package adapter.librato.config;
+
+import "gogoproto/gogo.proto";
+
+option go_package="config";
+
+// config for librato
+message Params {
+    // librato email
+    string librato_email = 1;
+
+    // librato token
+    string librato_token = 2;
+}

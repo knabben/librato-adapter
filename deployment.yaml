@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: librato
+  namespace: istio-system
+  labels:
+    app: librato
+spec:
+  type: ClusterIP
+  ports:
+  - name: grpc
+    protocol: TCP
+    port: 50000
+    targetPort: 50000
+  selector:
+    app: librato
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: librato
+  namespace: istio-system
+  labels:
+    app: librato
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: librato
+      annotations:
+        sidecar.istio.io/inject: "false"
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+    spec:
+      containers:
+      - name: librato 
+        image: knabben/librato-adapter:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 50000
