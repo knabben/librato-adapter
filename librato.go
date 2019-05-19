@@ -3,6 +3,7 @@
 // supported template names (metric in this case), and whether it is session or no-session based.
 //go:generate $GOPATH/src/istio.io/istio/bin/mixer_codegen.sh -a mixer/adapter/librato/config/config.proto -x "-s=false -n librato -t metric"
 
+
 package librato
 
 import (
@@ -46,6 +47,7 @@ var _ metric.HandleMetricServiceServer = &LibratoServer{}
 // HandleMetric records metric entries
 func (s *LibratoServer) HandleMetric(ctx context.Context, r *metric.HandleMetricRequest) (*v1beta1.ReportResult, error) {
 	cfg := &config.Params{}
+	client := &http.Client{}
 
 	if r.AdapterConfig != nil {
 		if err := cfg.Unmarshal(r.AdapterConfig.Value); err != nil {
@@ -65,7 +67,7 @@ func (s *LibratoServer) HandleMetric(ctx context.Context, r *metric.HandleMetric
 		}`, decodeValue(inst.Value.GetValue())))
 
 	}
-	client := &http.Client{}
+
 	req, err := http.NewRequest(
 		"POST",
 		"https://api.appoptics.com/v1/measurements",
@@ -90,17 +92,11 @@ func (s *LibratoServer) HandleMetric(ctx context.Context, r *metric.HandleMetric
 		fmt.Println(err)
 	}
 	bodyString := string(bodyBytes)
-
-	// DEBUG
-	log.Info(bodyString)
-	log.Infof(
-		fmt.Sprintf("HandleMetric invoked with:\n  Adapter config: %s\n  Instances: %s\n",
-			cfg.String(), instances(r.Instances)))
-
-	log.Infof("success!!")
+	log.Debug( fmt.Sprintf("Request made %s", bodyString))
 
 	return &v1beta1.ReportResult{}, nil
 }
+
 
 func decodeDimensions(in map[string]*policy.Value) map[string]interface{} {
 	out := make(map[string]interface{}, len(in))
